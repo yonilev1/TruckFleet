@@ -1,0 +1,21 @@
+truck_id,model,region,status
+TRK-001,Mercedes Actros,Center,Active
+TRK-002,MAN TGX,North,Active
+TRK-003,Volvo FH,Center,Maintenance
+TRK-004,Mercedes Actros,East,Active
+TRK-005,Mercedes Actros,East,Active
+TRK-006,MAN TGX,Center,Active
+TRK-007,Volvo FH,Center,Active
+TRK-008,Volvo FH,Center,Active
+TRK-009,Mercedes Actros,East,Maintenance
+TRK-010,Scania R,East,Maintenance
+TRK-011,Mercedes Actros,North,Active
+TRK-012,Mercedes Actros,North,Maintenance
+TRK-013,Mercedes Actros,East,Active
+TRK-014,Mercedes Actros,Center,Active
+TRK-015,MAN TGX,Center,Active
+TRK-016,Volvo FH,North,Active
+TRK-017,MAN TGX,East,Active
+TRK-018,MAN TGX,North,Active
+TRK-019,MAN TGX,North,Active
+TRK-020,Mercedes Actros,South,Active
