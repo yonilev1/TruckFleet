@@ -1,5 +1,4 @@
 import json
-
 from confluent_kafka import Producer
 import pandas as pd
 import os
@@ -9,7 +8,7 @@ os.makedirs('logs', exist_ok=True)
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s | %(levelname)s | %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S',
-                    filename='logs/log_file.logs', filemode='a')
+                    filename='/app/logs/log_file.log', filemode='a')
 
 logger = logging.getLogger()
 
@@ -43,7 +42,7 @@ def validated_data(row):
 
 def main():
     try:
-        config = {'bootstrap.servers': 'localhost:9092'}
+        config = {'bootstrap.servers': 'kafka:29092'}
         producer = Producer(config)
 
         topic = "telemetry-events"

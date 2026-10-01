@@ -9,7 +9,7 @@ os.makedirs('logs', exist_ok=True)
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s | %(levelname)s | %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S',
-                    filename='logs/log_file.logs', filemode='a')
+                    filename='/app/logs/log_file.log', filemode='a')
 
 logger = logging.getLogger()
 
