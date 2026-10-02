@@ -1,4 +1,6 @@
 ﻿using AlertWorker.Handlers;
+using Elastic.Clients.Elasticsearch.Inference;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
@@ -51,30 +53,46 @@ public class RabbitReader :BackgroundService
 
 
             var consumer = new AsyncEventingBasicConsumer(channel);
-            while(true)
+            try
             {
-                try
+                consumer.ReceivedAsync += async (model, ea) =>
                 {
-                    consumer.ReceivedAsync += (model, ea) =>
-                    {
-                        var body = ea.Body.ToArray();
-                        var message = Encoding.UTF8.GetString(body);
-                        _logger.LogInformation($" [x] Received {message}");
-                        return Task.CompletedTask;
-                    };
-                    //bool addedToSql = 
-                    await channel.BasicConsumeAsync("anomalies", autoAck: false, consumer: consumer);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError($"Got error while reading from rabbit: {ex}");
-                }
-            }
+                    var body = ea.Body.ToArray();
+                    var message = Encoding.UTF8.GetString(body);
+                    _logger.LogInformation($" [x] Received {message}");
 
+                    bool addedToElastic = await _elastic.HandleAsync(message);
+                    bool addedToSql = false;
+
+                    using (var scope = _serviceProvider.CreateScope())
+                    {
+                        var sqlHandler = scope.ServiceProvider.GetRequiredService<SqlHandler>();
+                        addedToSql = await sqlHandler.HandleAsync(message);
+                    }
+
+                    if (addedToElastic && addedToSql)
+                    {
+                        await channel.BasicAckAsync(deliveryTag: ea.DeliveryTag, multiple: false);
+                    }
+                    else
+                    {
+                        await channel.BasicNackAsync(deliveryTag: ea.DeliveryTag, multiple: false, requeue:true);
+                    }
+                };
+
+                await channel.BasicConsumeAsync("anomalies", autoAck: false, consumer: consumer);
+                await Task.Delay(Timeout.Infinite, stoppingToken);
+
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Got error while setting up RabbitMQ consumer: {ex}");
+            }
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Got error while reading from rabbit: {ex}");
+            _logger.LogError($"Got error while setting up RabbitMQ consumer: {ex}");
         }
     }
 }
