@@ -20,4 +20,6 @@ public class Anomelies
 
     [JsonPropertyName("engine_temp")]
     public string EngineTemp { get; set; } = string.Empty;
+
+    public Trucks Truck { get; set; } = null!;
 }
