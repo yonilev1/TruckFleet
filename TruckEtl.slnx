@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="AlertWorker/AlertWorker.csproj" />
   <Project Path="RabbitProducer/RabbitProducer.csproj" />
 </Solution>
