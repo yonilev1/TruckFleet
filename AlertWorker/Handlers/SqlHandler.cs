@@ -1,6 +1,5 @@
 ﻿using AlertWorker.Data;
 using AlertWorker.Model;
-using Elastic.Clients.Elasticsearch;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -24,13 +23,13 @@ public class SqlHandler : ISqlHandler
 
     public async Task<bool> HandleAsync(string anomelie)
     {
-        AnomalieSqlDto anomalieInDto = JsonSerializer.Deserialize<AnomalieSqlDto>(anomelie)!;
+        var dataArray = JsonSerializer.Deserialize<JsonElement[]>(anomelie)!;
         Anomelies anomalieToSql = new Anomelies
         {
-            EventId = anomalieInDto.EventId,
-            TruckId = anomalieInDto.TruckId,
-            TimeStamp = DateTime.Parse(anomalieInDto.TimeStamp),
-            EngineTemp = anomalieInDto.EngineTemp
+            EventId = dataArray[0].GetString()!,
+            TruckId = dataArray[1].GetString()!,
+            TimeStamp = dataArray[2].GetDateTime(),
+            EngineTemp = dataArray[3].ToString()
         };
         await _context.Anomelies.AddAsync(anomalieToSql);
         int rowsAffected =  await _context.SaveChangesAsync();

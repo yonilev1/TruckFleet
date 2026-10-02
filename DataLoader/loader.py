@@ -40,6 +40,17 @@ def main():
                        )
                        """)
 
+        cursor.execute("""
+                       CREATE TABLE IF NOT EXISTS Anomelies
+                       (
+                           EventId VARCHAR(255) PRIMARY KEY,
+                           TruckId VARCHAR (50) NOT NULL,
+                           TimeStamp DATETIME (6) NOT NULL,
+                           EngineTemp DOUBLE NOT NULL,
+                           FOREIGN KEY(TruckId) REFERENCES Trucks(truck_id) ON DELETE CASCADE
+                           )
+                       """)
+
         cursor.close()
         cursor = conn.cursor()
 

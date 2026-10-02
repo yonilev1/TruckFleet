@@ -29,5 +29,8 @@ public class AlertDbContext : DbContext
 
         modelBuilder.Entity<Anomelies>()
             .HasKey(a => a.EventId);
+
+        modelBuilder.Entity<Trucks>()
+        .HasKey(t => t.TruckId);
     }
 }

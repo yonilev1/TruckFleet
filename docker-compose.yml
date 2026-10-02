@@ -115,6 +115,37 @@ services:
       - ./logs:/app/logs
 
 
+  elastic:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+    container_name: elastic
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+    
+
+  alert-worker:
+    build: ./AlertWorker
+    container_name: alert-worker
+    environment:
+      - Rabbit__ConnectionString=amqp://admin:root@rabbit:5672/
+      - Elastic__ConnectionString=http://elastic:9200
+      - ConnectionStrings__DefaultConnection=Server=mysql;Port=3306;Database=truck_db;Uid=root;Pwd=root;
+    depends_on:
+      elastic:
+        condition: service_started
+      rabbit:
+        condition: service_started
+      mysql:
+        condition: service_healthy
+    restart: on-failure
+    volumes:
+      - ./logs:/app/logs
+
+
 
 
 

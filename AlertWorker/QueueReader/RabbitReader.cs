@@ -57,26 +57,35 @@ public class RabbitReader :BackgroundService
             {
                 consumer.ReceivedAsync += async (model, ea) =>
                 {
-                    var body = ea.Body.ToArray();
-                    var message = Encoding.UTF8.GetString(body);
-                    _logger.LogInformation($" [x] Received {message}");
-
-                    bool addedToElastic = await _elastic.HandleAsync(message);
-                    bool addedToSql = false;
-
-                    using (var scope = _serviceProvider.CreateScope())
+                    try
                     {
-                        var sqlHandler = scope.ServiceProvider.GetRequiredService<SqlHandler>();
-                        addedToSql = await sqlHandler.HandleAsync(message);
+                        var body = ea.Body.ToArray();
+                        var message = Encoding.UTF8.GetString(body);
+                        _logger.LogInformation($" [x] Received {message}");
+
+                        bool addedToElastic = await _elastic.HandleAsync(message);
+                        bool addedToSql = false;
+
+                        using (var scope = _serviceProvider.CreateScope())
+                        {
+                            var sqlHandler = scope.ServiceProvider.GetRequiredService<ISqlHandler>();
+                            addedToSql = await sqlHandler.HandleAsync(message);
+                        }
+
+                        if (addedToElastic && addedToSql)
+                        {
+                            await channel.BasicAckAsync(deliveryTag: ea.DeliveryTag, multiple: false);
+                        }
+                        else
+                        {
+                            await channel.BasicNackAsync(deliveryTag: ea.DeliveryTag, multiple: false, requeue: true);
+                        }
                     }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError($"Error processing message {ea.DeliveryTag}: {ex}");
 
-                    if (addedToElastic && addedToSql)
-                    {
-                        await channel.BasicAckAsync(deliveryTag: ea.DeliveryTag, multiple: false);
-                    }
-                    else
-                    {
-                        await channel.BasicNackAsync(deliveryTag: ea.DeliveryTag, multiple: false, requeue:true);
+                        await channel.BasicNackAsync(deliveryTag: ea.DeliveryTag, multiple: false, requeue: false);
                     }
                 };
 
