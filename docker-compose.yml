@@ -17,6 +17,7 @@ services:
   loader:
     build: ./DataLoader
     container_name: loader
+    restart: on-failure
     depends_on:
       mysql:
         condition: service_healthy
@@ -85,6 +86,37 @@ services:
         condition: service_started
     volumes:
       - ./logs:/app/logs
+
+
+  rabbit:
+    image: rabbitmq:4.3.6-management
+    container_name: rabbit
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: root 
+
+
+  rabbit-producer:
+    build: ./RabbitProducer
+    container_name: rabbit-producer
+    environment:
+      - Kafka__BootstrapServer=kafka:29092
+      - Rabbit__ConnectionString=amqp://admin:root@rabbit:5672/
+    depends_on:
+      kafka:
+        condition: service_started
+      rabbit:
+        condition: service_started
+    restart: on-failure
+    volumes:
+      - ./logs:/app/logs
+
+
+
+
 
 
 
